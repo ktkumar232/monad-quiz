@@ -1,0 +1,394 @@
+<!-- Monad Quiz Giveaway - index.html
+     Dark purple theme, colorful accents. Self-contained HTML/CSS/JS.
+     Drop this file into a webserver or open directly in browser.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monad Quiz Giveaway</title>
+  <style>
+    :root{
+      --bg:#12021f; /* deep purple */
+      --card:#1b0c2a;
+      --muted:#bdb2d9;
+      --accent1:#7c4dff; /* purple */
+      --accent2:#ff77a9; /* pink */
+      --accent3:#4dd0e1; /* teal */
+      --success:#7be495;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: linear-gradient(180deg,var(--bg),#0b0712 70%);
+      color:var(--muted);
+      -webkit-font-smoothing:antialiased;
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;
+    }
+    .wrap{width:100%; max-width:920px}
+    header{display:flex; align-items:center; gap:16px; margin-bottom:18px}
+    .logo{
+      height:64px; width:64px; border-radius:12px;
+      background: conic-gradient(from 180deg at 50% 50%, var(--accent1), var(--accent2), var(--accent3));
+      box-shadow: 0 6px 30px rgba(124,77,255,0.18), inset 0 -6px 12px rgba(0,0,0,0.2);
+      display:flex; align-items:center; justify-content:center; font-weight:700; color:white; font-size:20px
+    }
+    h1{font-size:20px; margin:0; color:#fff}
+    p.lead{margin:0; color:var(--muted); font-size:13px}
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px; padding:20px; box-shadow: 0 8px 30px rgba(2,0,15,0.6); border:1px solid rgba(255,255,255,0.03)
+    }
+
+    .quiz-area{display:grid; grid-template-columns: 1fr 320px; gap:18px; align-items:start}
+
+    .question-box{padding:18px; border-radius:12px; background:var(--card);}
+    .q-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px}
+    .progress{height:10px; background:rgba(255,255,255,0.04); border-radius:99px; overflow:hidden}
+    .progress > i{display:block; height:100%; background: linear-gradient(90deg,var(--accent1),var(--accent3)); width:0%}
+
+    .q-text{font-size:18px; color:#fff; margin-bottom:14px}
+    .options{display:flex; flex-direction:column; gap:10px}
+    .opt{
+      padding:12px 14px; background:var(--glass); border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.03);
+      transition:transform .12s ease, box-shadow .12s ease;
+    }
+    .opt:hover{transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+    .opt.selected{outline:2px solid rgba(124,77,255,0.22); background:linear-gradient(90deg, rgba(124,77,255,0.06), rgba(77,208,225,0.03))}
+    .opt.correct{background: linear-gradient(90deg, rgba(123,228,149,0.08), rgba(123,228,149,0.02)); border-color: rgba(123,228,149,0.12)}
+    .opt.wrong{background: linear-gradient(90deg, rgba(255,107,107,0.06), rgba(255,107,107,0.02)); border-color: rgba(255,107,107,0.12)}
+
+    .meta{display:flex; gap:10px; align-items:center; color:var(--muted); font-size:13px}
+    button.btn{
+      background: linear-gradient(90deg,var(--accent1),var(--accent2)); color:white; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600;
+    }
+    button.ghost{background:transparent; border:1px solid rgba(255,255,255,0.05); color:var(--muted)}
+
+    aside.side{position:sticky; top:28px}
+    .summary{padding:14px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.03)}
+    .stat{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,0.02)}
+    .stat:last-child{border-bottom:0}
+
+    .result{display:none; text-align:center; padding:24px}
+    .result.show{display:block}
+    .bigscore{font-size:42px; color:var(--accent1); font-weight:800}
+    .pct{font-size:18px; color:#fff}
+
+    .giveaway{margin-top:12px}
+    input[type=email]{width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:var(--muted)}
+    .note{font-size:12px; color:var(--muted); margin-top:8px}
+
+    footer{margin-top:14px; text-align:center; color:var(--muted); font-size:13px}
+
+    @media (max-width:880px){
+      .quiz-area{grid-template-columns:1fr;}
+      aside.side{position:static}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">M</div>
+      <div>
+        <h1>Monad Quiz — Testnet Giveaway</h1>
+        <p class="lead">Try the quiz, score high, and enter the giveaway! Dark purple theme with colorful accents.</p>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="quiz-area">
+
+        <div>
+          <div class="question-box" id="questionBox">
+            <div class="q-head">
+              <div class="meta"><strong id="qIndex">Question 1</strong><span id="qTotal">/10</span></div>
+              <div style="flex:1 1 auto; margin-left:12px"><div class="progress" aria-hidden><i id="progBar"></i></div></div>
+            </div>
+
+            <div class="q-text" id="qText">Loading...</div>
+            <div class="options" id="options"></div>
+
+            <div style="display:flex; gap:8px; margin-top:16px; align-items:center">
+              <button class="btn" id="nextBtn">Next</button>
+              <button class="ghost" id="skipBtn">Skip</button>
+              <div style="flex:1"></div>
+              <div class="meta">Selected: <span id="selectedCount">0</span></div>
+            </div>
+
+          </div>
+
+          <div class="card" style="margin-top:12px">
+            <div style="display:flex; align-items:center; justify-content:space-between">
+              <div style="font-weight:700; color:#fff">Quiz Controls</div>
+              <div style="font-size:13px; color:var(--muted)">Interactive</div>
+            </div>
+            <div style="margin-top:10px; display:flex; gap:8px">
+              <button class="ghost" id="restartBtn">Restart</button>
+              <button class="ghost" id="revealBtn">Reveal Answers</button>
+              <button class="ghost" id="shuffleBtn">Shuffle Questions</button>
+            </div>
+            <p class="note">This is a client-only demo. No data is sent anywhere. For giveaway entry we only simulate an entry locally.</p>
+          </div>
+
+        </div>
+
+        <aside class="side">
+          <div class="summary">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px">
+              <div style="height:46px; width:46px; border-radius:10px; background:linear-gradient(90deg,var(--accent2),var(--accent3)); display:flex; align-items:center; justify-content:center; color:white; font-weight:700">G</div>
+              <div>
+                <div style="font-weight:700; color:#fff">Giveaway</div>
+                <div style="font-size:13px; color:var(--muted)">Score top to increase chances!</div>
+              </div>
+            </div>
+
+            <div class="stat"><div>Questions</div><div id="statTotal">10</div></div>
+            <div class="stat"><div>Answered</div><div id="statAnswered">0</div></div>
+            <div class="stat"><div>Correct</div><div id="statCorrect">0</div></div>
+            <div class="stat"><div>Wrong</div><div id="statWrong">0</div></div>
+
+            <div style="margin-top:12px">
+              <div class="note">After finishing, enter your email to simulate giveaway entry (client-only).</div>
+              <div class="giveaway" id="giveawayForm" style="margin-top:8px">
+                <input id="emailInput" type="email" placeholder="you@example.com" />
+                <button class="btn" id="enterBtn" style="margin-top:8px">Enter Giveaway</button>
+                <div class="note">No data leaves your browser. This is only a demo.</div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div style="height:14px"></div>
+          <div class="card" style="margin-top:12px; text-align:center">
+            <div style="font-weight:700; color:#fff">Result</div>
+            <div id="resultCard" class="result">
+              <div class="bigscore" id="finalScore">0 / 10</div>
+              <div class="pct" id="finalPct">0%</div>
+              <div style="margin-top:10px"><button class="btn" id="viewAnswersBtn">View Answers</button></div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <footer>
+        <small>Monad Testnet Quiz • Demo — dark purple colorful theme</small>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Questions dataset (10 questions). Correct answer index is zero-based.
+    const QUESTIONS = [
+      {
+        q: 'What is the primary purpose of the Monad Testnet?',
+        opts: ['To launch mainnet governance modules','To let users test, play, and build on Monad in a safe environment','To host permanent production dApps','To replace Ethereum mainnet'],
+        a: 1
+      },
+      {
+        q: 'Which of the following is a typical use case for a blockchain testnet like Monad’s?',
+        opts: ['Handling real financial transactions with real funds','Stress testing protocol upgrades before mainnet deployment','Serving as a permanent ledger for decentralized applications','Charging gas fees in stablecoins'],
+        a: 1
+      },
+      {
+        q: 'In a testnet environment, the tokens (or coins) used are generally:',
+        opts: ['Fiat-backed stablecoins','Real, valuable cryptocurrencies','Test tokens with no real monetary value','Wrapped mainnet assets'],
+        a: 2
+      },
+      {
+        q: 'Which of these is NOT an expected feature of Monad Testnet?',
+        opts: ['Smart contract deployment','Token transfers','On‑chain governance with binding decisions affecting mainnet','Simulation of consensus protocols'],
+        a: 2
+      },
+      {
+        q: 'Why would developers prefer to use a testnet before deploying on mainnet?',
+        opts: ['Because testnet has higher transaction fees','To catch bugs and vulnerabilities without risking real funds','Because testnet transactions are irreversible','Because testnet has more users'],
+        a: 1
+      },
+      {
+        q: 'Which of the following is most likely to be true about gas fees on Monad Testnet?',
+        opts: ['They cost real currency at market rate','They are extremely high to simulate mainnet','They are negligible or subsidized','They use Bitcoin as gas'],
+        a: 2
+      },
+      {
+        q: 'What happens to testnet tokens when the testnet is reset or upgraded?',
+        opts: ['They retain their value and move to mainnet','They can be redeemed for mainnet tokens','They are wiped or invalidated','They become NFTs'],
+        a: 2
+      },
+      {
+        q: 'If a dApp works perfectly on the Monad Testnet, that guarantees:',
+        opts: ['It will never have bugs on mainnet','It is ready for mainnet deployment (though further review needed)','There’s no need for security audits','It will have no scaling issues under load'],
+        a: 1
+      },
+      {
+        q: 'Which of the following challenges are commonly tested on a blockchain testnet?',
+        opts: ['Latency under high transaction volume','Real‑world regulatory compliance','Long‑term token economics effects','Central bank interest rate changes'],
+        a: 0
+      },
+      {
+        q: 'If a user wants to try out transferring tokens on Monad Testnet, they would likely need to:',
+        opts: ['Buy tokens with fiat currency','Use a faucet to receive test tokens','Stake mainnet tokens','Pay gas with Bitcoin'],
+        a: 1
+      }
+    ];
+
+    // State
+    let questions = [...QUESTIONS];
+    let index = 0;
+    let selected = Array(questions.length).fill(null); // chosen option index
+    let revealed = false;
+
+    // Elements
+    const qIndex = document.getElementById('qIndex');
+    const qTotal = document.getElementById('qTotal');
+    const progBar = document.getElementById('progBar');
+    const qText = document.getElementById('qText');
+    const optionsEl = document.getElementById('options');
+    const nextBtn = document.getElementById('nextBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const revealBtn = document.getElementById('revealBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const statTotal = document.getElementById('statTotal');
+    const statAnswered = document.getElementById('statAnswered');
+    const statCorrect = document.getElementById('statCorrect');
+    const statWrong = document.getElementById('statWrong');
+    const selectedCount = document.getElementById('selectedCount');
+    const resultCard = document.getElementById('resultCard');
+    const finalScore = document.getElementById('finalScore');
+    const finalPct = document.getElementById('finalPct');
+    const viewAnswersBtn = document.getElementById('viewAnswersBtn');
+    const enterBtn = document.getElementById('enterBtn');
+    const emailInput = document.getElementById('emailInput');
+    const revealAnswersBtn = document.getElementById('revealBtn');
+
+    // Initialize
+    function init(){
+      questions = [...QUESTIONS];
+      index = 0;
+      selected = Array(questions.length).fill(null);
+      revealed = false;
+      qTotal.textContent = `/${questions.length}`;
+      statTotal.textContent = questions.length;
+      updateStats();
+      renderQuestion();
+      resultCard.classList.remove('show');
+    }
+
+    function renderQuestion(){
+      const q = questions[index];
+      qIndex.textContent = `Question ${index+1}`;
+      progBar.style.width = `${Math.round(((index)/questions.length)*100)}%`;
+      qText.textContent = q.q;
+      optionsEl.innerHTML = '';
+      q.opts.forEach((o,i)=>{
+        const btn = document.createElement('div');
+        btn.className = 'opt';
+        btn.tabIndex = 0;
+        btn.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center"><div style="max-width:86%">${String.fromCharCode(65+i)}. ${o}</div></div>`;
+        if(selected[index] === i) btn.classList.add('selected');
+        if(revealed){
+          if(i === q.a) btn.classList.add('correct');
+          else if(selected[index] === i && selected[index] !== q.a) btn.classList.add('wrong');
+        }
+        btn.addEventListener('click', ()=> onSelect(i, btn));
+        optionsEl.appendChild(btn);
+      });
+      selectedCount.textContent = selected.filter(s=>s!==null).length;
+    }
+
+    function onSelect(optIndex, el){
+      if(revealed) return; // no selecting after reveal
+      selected[index] = optIndex;
+      // update visuals
+      Array.from(optionsEl.children).forEach((c,i)=>{
+        c.classList.toggle('selected', i===optIndex);
+      });
+      updateStats();
+    }
+
+    nextBtn.addEventListener('click', ()=>{
+      // move to next or finish
+      if(index < questions.length -1){ index++; renderQuestion(); }
+      else finishQuiz();
+    });
+    skipBtn.addEventListener('click', ()=>{
+      if(index < questions.length -1){ index++; renderQuestion(); }
+    });
+
+    restartBtn.addEventListener('click', ()=>{
+      if(confirm('Restart the quiz?')) init();
+    });
+
+    revealBtn.addEventListener('click', ()=>{
+      revealed = !revealed;
+      revealBtn.textContent = revealed ? 'Hide Answers' : 'Reveal Answers';
+      renderQuestion();
+    });
+
+    shuffleBtn.addEventListener('click', ()=>{
+      shuffleQuestions();
+      init();
+    });
+
+    viewAnswersBtn.addEventListener('click', ()=>{
+      revealed = true; renderQuestion();
+      // jump to first question
+      index = 0; renderQuestion();
+    });
+
+    function finishQuiz(){
+      // compute score
+      let correct = 0;
+      questions.forEach((q,i)=>{ if(selected[i] === q.a) correct++; });
+      finalScore.textContent = `${correct} / ${questions.length}`;
+      finalPct.textContent = `${Math.round((correct/questions.length)*100)}%`;
+      resultCard.classList.add('show');
+      // show reveal by default
+      revealed = true; renderQuestion();
+    }
+
+    function updateStats(){
+      const answered = selected.filter(s=>s!==null).length;
+      const correct = questions.reduce((acc,q,i)=> acc + (selected[i]===q.a?1:0), 0);
+      const wrong = answered - correct;
+      statAnswered.textContent = answered;
+      statCorrect.textContent = correct;
+      statWrong.textContent = wrong<0?0:wrong;
+      selectedCount.textContent = answered;
+    }
+
+    function shuffleQuestions(){
+      for(let i=questions.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+      }
+    }
+
+    enterBtn.addEventListener('click', ()=>{
+      const email = emailInput.value.trim();
+      if(!email || !email.includes('@')){ alert('Please enter a valid email to simulate entry.'); return; }
+      // simulation only — nothing is sent anywhere.
+      alert('Thanks! Your giveaway entry was recorded locally in this browser (demo).');
+      emailInput.value = '';
+    });
+
+    // keyboard support
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'ArrowRight') nextBtn.click();
+      if(e.key === 'ArrowLeft') skipBtn.click();
+      if(e.key === 'r' && e.ctrlKey) restartBtn.click();
+    });
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
